@@ -1,0 +1,304 @@
+#include <Arduino.h>
+#include <Adafruit_Sensor.h>
+#include <DHT.h>
+
+
+#define DHTPIN 2
+#define DHTTYPE DHT11
+DHT dht(DHTPIN, DHTTYPE);
+
+void setup() {
+  Serial.begin(9600);
+  Serial.println(F("DHTxx test!"));
+
+  dht.begin();
+}
+
+void loop() {
+  // Wait a few seconds between measurements.
+  delay(2000);
+
+  // Reading temperature or humidity takes about 250 milliseconds!
+  // Sensor readings may also be up to 2 seconds 'old' (its a very slow sensor)
+  float h = dht.readHumidity();
+  // Read temperature as Celsius (the default)
+  float t = dht.readTemperature();
+  // Read temperature as Fahrenheit (isFahrenheit = true)
+  float f = dht.readTemperature(true);
+
+  // Check if any reads failed and exit early (to try again).
+  if (isnan(h) || isnan(t) || isnan(f)) {
+    Serial.println(F("Failed to read from DHT sensor!"));
+    return;
+  }
+
+  Serial.print(F("Humidity: "));
+  Serial.print(h);
+  Serial.print(F("%  Temperature: "));
+  Serial.print(t);
+  Serial.print(F("°C "));
+
+}
+
+--------------------------------------------------------------------
+
+FreeRTOS sample code
+
+#include <Arduino\_FreeRTOS.h>
+
+#include <Arduino.h>
+
+  
+
+static void meTask1(void\* pvParameters);
+
+static void meTask2(void\* pvParameters);
+
+static void meTask3(void\* pvParameters);
+
+static void idleTask(void\* pvParameters);
+
+/\*\*
+
+ \* @brief Setup Fn so that pins and serial monitor are initialized.
+
+ \* Also creates tasks for scope of this project.
+
+ \*/
+
+void setup()
+
+{
+
+ Serial.begin(9600);
+
+ Serial.println("Setup Initialized!");
+
+ for (int i \= 4; i < 8; i++)
+
+ {
+
+ pinMode(i, OUTPUT);
+
+ digitalWrite(i, LOW);
+
+ }
+
+ /\*\*
+
+ \* Task Creation 
+
+ \*/
+
+ xTaskCreate(meTask1, "Task1", 100, NULL, 1, NULL);
+
+ xTaskCreate(meTask2, "Task2", 100, NULL, 2, NULL);
+
+ xTaskCreate(meTask3, "Task3", 100, NULL, 3, NULL);
+
+ xTaskCreate(idleTask, "Task0", 100, NULL, 0, NULL);
+
+}
+
+  
+
+void loop()
+
+{
+
+}
+
+  
+
+static void meTask1(void\* pvParameters)
+
+{
+
+ while(1)
+
+ {
+
+ digitalWrite(4,HIGH);
+
+ Serial.println("In Task1");
+
+ vTaskDelay(250/portTICK\_PERIOD\_MS);
+
+ digitalWrite(4,LOW);
+
+ vTaskDelay(250/portTICK\_PERIOD\_MS);
+
+ Serial.println("LED off") ;
+
+ }
+
+}
+
+  
+
+static void meTask2(void\* pvParameters)
+
+{
+
+ while(1)
+
+ {
+
+ digitalWrite(5,HIGH); 
+
+ Serial.println("In Task2");
+
+ vTaskDelay(500/portTICK\_PERIOD\_MS);
+
+ digitalWrite(5, LOW);
+
+ vTaskDelay(500/portTICK\_PERIOD\_MS);
+
+ }
+
+}
+
+  
+
+static void meTask3(void\* pvParameters)
+
+{
+
+ while(1)
+
+ 	{
+
+		 digitalWrite(6,HIGH);
+
+		 Serial.println("In Task3");
+
+		 vTaskDelay(1000/portTICK\_PERIOD\_MS); 
+
+		 digitalWrite(6, LOW);
+
+		 vTaskDelay(1000/portTICK\_PERIOD\_MS);
+
+ 	}
+
+}
+
+  
+
+static void idleTask(void\* pvParameters)
+
+{
+
+ while(1)
+
+ {
+
+ digitalWrite(7,HIGH);
+
+ Serial.println("In Idle now");
+
+ vTaskDelay(50/portTICK\_PERIOD\_MS); 
+
+ }
+
+}
+
+
+Custom Character:
+//Humidity
+byte customChar[8] = {
+	0b00100,
+	0b00100,
+	0b00100,
+	0b01110,
+	0b11111,
+	0b11111,
+	0b11111,
+	0b01110
+};
+
+Temperature
+byte customChar[8] = {
+	0b00111,
+	0b00100,
+	0b00111,
+	0b00100,
+	0b00100,
+	0b01010,
+	0b01010,
+	0b00100
+};
+
+Degrees symbol:
+byte customChar[8] = {
+	0b00110,
+	0b01001,
+	0b01001,
+	0b00110,
+	0b00000,
+	0b00000,
+	0b00000,
+	0b00000
+};
+
+#define DHTPIN 2
+#define DHTTYPE DHT11
+DHT dht(DHTPIN, DHTTYPE);
+float h;
+float t;
+
+static void meTask1(void *pvParameters);
+static void meTask2(void *pvParameters);
+static void idleTask(void *pvParameters);
+
+void setup()
+{
+  Serial.begin(9600);
+  Serial.println(F("DHTxx test!"));
+  dht.begin();
+
+  xTaskCreate(meTask1, "Task1", 100, NULL, 1, NULL);
+  xTaskCreate(meTask2, "Task2", 100, NULL, 2, NULL);
+  xTaskCreate(idleTask, "Task0", 100, NULL, 0, NULL);
+}
+
+static void meTask1(void *pvParameters)
+
+{
+  while (1)
+  {
+    Serial.println("In Task1");
+    vTaskDelay(2000 / portTICK_PERIOD_MS);
+    h = dht.readHumidity();
+    t = dht.readTemperature();
+  }
+}
+
+static void meTask2(void *pvParameters)
+
+{
+  while (1)
+  {
+
+    Serial.println("In Task2");
+    vTaskDelay(2200 / portTICK_PERIOD_MS);
+    Serial.print(F("Humidity: "));
+    Serial.print(h);
+    Serial.print(F("%  Temperature: "));
+    Serial.print(t);
+    Serial.print(F("°C "));
+  }
+}
+
+static void idleTask(void *pvParameters)
+
+{
+  while (1)
+  {
+    //Serial.println("In Idle now");
+    vTaskDelay(50 / portTICK_PERIOD_MS);
+  }
+}
+
+void loop()
+{
+}
