@@ -201,9 +201,39 @@ static void idleTask(void\* pvParameters)
  }
 
 }
+------------------------------------------------------------------------
+Code for LCD I2C and Arduino
 
+#include <LiquidCrystal_I2C.h>
 
-Custom Character:
+LiquidCrystal_I2C lcd(0x27, 16, 2); // I2C address 0x27, 16 column and 2 rows
+
+byte customChar[8] = {
+  0b00000,
+  0b01010,
+  0b11111,
+  0b11111,
+  0b01110,
+  0b00100,
+  0b00000,
+  0b00000
+};
+
+void setup()
+{
+  lcd.init(); // initialize the lcd
+  lcd.backlight();
+
+  lcd.createChar(0, customChar); // create a new custom character
+
+  lcd.setCursor(2, 0); // move cursor to (2, 0)
+  lcd.write((byte)0);  // print the custom char at (2, 0)
+}
+
+void loop()
+{
+}
+//Custom Character:
 //Humidity
 byte customChar[8] = {
 	0b00100,
@@ -216,7 +246,7 @@ byte customChar[8] = {
 	0b01110
 };
 
-Temperature
+//Temperature
 byte customChar[8] = {
 	0b00111,
 	0b00100,
@@ -228,7 +258,7 @@ byte customChar[8] = {
 	0b00100
 };
 
-Degrees symbol:
+//Degrees symbol:
 byte customChar[8] = {
 	0b00110,
 	0b01001,
@@ -240,65 +270,3 @@ byte customChar[8] = {
 	0b00000
 };
 
-#define DHTPIN 2
-#define DHTTYPE DHT11
-DHT dht(DHTPIN, DHTTYPE);
-float h;
-float t;
-
-static void meTask1(void *pvParameters);
-static void meTask2(void *pvParameters);
-static void idleTask(void *pvParameters);
-
-void setup()
-{
-  Serial.begin(9600);
-  Serial.println(F("DHTxx test!"));
-  dht.begin();
-
-  xTaskCreate(meTask1, "Task1", 100, NULL, 1, NULL);
-  xTaskCreate(meTask2, "Task2", 100, NULL, 2, NULL);
-  xTaskCreate(idleTask, "Task0", 100, NULL, 0, NULL);
-}
-
-static void meTask1(void *pvParameters)
-
-{
-  while (1)
-  {
-    Serial.println("In Task1");
-    vTaskDelay(2000 / portTICK_PERIOD_MS);
-    h = dht.readHumidity();
-    t = dht.readTemperature();
-  }
-}
-
-static void meTask2(void *pvParameters)
-
-{
-  while (1)
-  {
-
-    Serial.println("In Task2");
-    vTaskDelay(2200 / portTICK_PERIOD_MS);
-    Serial.print(F("Humidity: "));
-    Serial.print(h);
-    Serial.print(F("%  Temperature: "));
-    Serial.print(t);
-    Serial.print(F("°C "));
-  }
-}
-
-static void idleTask(void *pvParameters)
-
-{
-  while (1)
-  {
-    //Serial.println("In Idle now");
-    vTaskDelay(50 / portTICK_PERIOD_MS);
-  }
-}
-
-void loop()
-{
-}
